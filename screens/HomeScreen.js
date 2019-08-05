@@ -8,11 +8,13 @@ import {
   View,
 } from 'react-native';
 
+import { MapView } from 'expo';
+
 import { MonoText } from '../components/StyledText';
 
 import styles from './Home.styles';
 
-import { setValue } from '../features/session';
+import { publish } from '../features/session';
 
 class HomeScreen extends React.Component {
 
@@ -22,7 +24,7 @@ class HomeScreen extends React.Component {
   }
 
   incCount = ()=> this.setState({ count: this.state.count + 1 }, ()=>{
-    setValue('count', this.state.count);
+    publish('count', this.state.count);
 
     if( this.state.count >= 10 )
       this.props.navigation.navigate('Links');
