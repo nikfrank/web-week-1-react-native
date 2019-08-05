@@ -6,6 +6,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  hoverButton: {
+    marginTop: 5,
+    height: 80,
+  },
+
   developmentModeText: {
     marginBottom: 20,
     color: 'rgba(0,0,0,0.4)',

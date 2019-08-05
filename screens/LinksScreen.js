@@ -1,24 +1,24 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text } from 'react-native';
-import { ExpoLinksView } from '@expo/samples';
 
 import { getValue, subscribe } from '../features/session';
 
 class LinksScreen extends React.Component {
 
   state = {
-    count: getValue('count') || 0
+    marker: getValue('marker')
   }
 
   componentDidMount(){
-    subscribe('count', count=> this.setState({ count }));
+    subscribe('marker', marker=> this.setState({ marker }));
   }
 
   render() {
     return (
       <ScrollView style={styles.container}>
-        <Text>{this.state.count}</Text>
-        <ExpoLinksView />
+        {this.state.marker ? (
+          <Text>{this.state.marker.latitude}N - {this.state.marker.longitude}E</Text>
+        ) : null }
       </ScrollView>
     );
   }

@@ -6,15 +6,16 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
+  Button,
 } from 'react-native';
 
-import { MapView } from 'expo';
-
+import MapView, { Marker } from 'react-native-maps';
 import { MonoText } from '../components/StyledText';
-
 import styles from './Home.styles';
-
 import { publish } from '../features/session';
+
+const { height, width } = Dimensions.get('window');
 
 class HomeScreen extends React.Component {
 
@@ -32,67 +33,53 @@ class HomeScreen extends React.Component {
 
   addItem = ()=> this.setState(state => ({ items: [...state.items, Math.random()] }))
 
+  flyToTLV = ()=> {
+    this.map.animateToRegion({
+      latitude: 32.0805,
+      longitude: 34.7794,
+      latitudeDelta: 0.0615,
+      longitudeDelta: 0.0281,
+    }, 100)
+  }
+
+  addMarker = (event)=> {
+    this.setState({
+      marker: event.nativeEvent.coordinate
+    });
+
+    publish('marker', event.nativeEvent.coordinate);
+  }
+
   render() {
     return (
       <View style={styles.container}>
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.contentContainer}>
-          <View style={styles.welcomeContainer}>
-            <Image
-              source={
-                __DEV__
-                  ? require('../assets/images/robot-dev.png')
-                  : require('../assets/images/robot-prod.png')
-              }
-              style={styles.welcomeImage}
+        <MapView
+          style={{ height: height - 100, width }}
+          ref={map => this.map = map}
+          initialRegion={{
+            latitude: 32.0805,
+            longitude: 34.7794,
+            latitudeDelta: 0.0615,
+            longitudeDelta: 0.0281,
+          }}
+          onLongPress={this.addMarker}>
+
+          {this.state.marker ? (
+            <Marker
+              coordinate={this.state.marker}
+              title='blah'
+              description={'hmm'}
             />
-          </View>
+          ) : null }
 
-          <View style={styles.getStartedContainer}>
-
-            <Text style={styles.getStartedText}>Get started by opening</Text>
-
-            <View
-              style={[styles.codeHighlightContainer, styles.homeScreenFilename]}>
-              <MonoText>screens/HomeScreen.js</MonoText>
-            </View>
-
-            <Text style={styles.getStartedText}>
-              Change this text and your app will automatically reload.
-            </Text>
-          </View>
-
-          <View style={styles.helpContainer}>
-            <TouchableOpacity onPress={this.incCount} style={styles.helpLink}>
-              <Text style={styles.helpLinkText}>
-                The Count is at {this.state.count}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.addItem} activeOpacity={0.75}>
-              <View style={styles.itemsList}>
-                {
-                  this.state.items.map((item, i)=> (
-                    <Text style={styles.listItem} key={i}>{item}</Text>
-                  ))
-                }
-              </View>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-
-        <View style={styles.tabBarInfoContainer}>
-          <Text style={styles.tabBarInfoText}>
-            This is a tab bar. You can edit it in:
-          </Text>
-
-          <View
-            style={[styles.codeHighlightContainer, styles.navigationFilename]}>
-            <MonoText style={styles.codeHighlightText}>
-              navigation/MainTabNavigator.js
-            </MonoText>
-          </View>
-        </View>
+        </MapView>
+        <Button
+          onPress={this.flyToTLV}
+          style={styles.hoverButton}
+          title="TLV"
+          color="#841584"
+          accessibilityLabel="Fly to TLV"
+        />
       </View>
     );
   }
