@@ -8,12 +8,16 @@ import {
   View,
   Dimensions,
   Button,
+  ToastAndroid,
 } from 'react-native';
 
 import MapView, { Marker } from 'react-native-maps';
 import { MonoText } from '../components/StyledText';
 import styles from './Home.styles';
-import { publish } from '../features/session';
+import { publish, subscribe } from '../features/session';
+
+import bike from '../bike.png';
+import deadCat from '../dead-cat.png';
 
 const { height, width } = Dimensions.get('window');
 
@@ -43,14 +47,26 @@ class HomeScreen extends React.Component {
   }
 
   addMarker = (event)=> {
-    this.setState({
-      marker: event.nativeEvent.coordinate
-    });
+    publish('latlng', event.nativeEvent.coordinate);
 
-    publish('marker', event.nativeEvent.coordinate);
+    ToastAndroid.show(
+      'Recording event location...',
+      ToastAndroid.LONG,
+    );
+
+    setTimeout(()=> this.props.navigation.navigate('Links'), 2500);
+
+  }
+
+  componentDidMount(){
+    subscribe('latlng', marker=> this.setState({ marker }));
+
+    subscribe('events', events=> this.setState({ events }));
   }
 
   render() {
+    const { events=[] } = this.state;
+
     return (
       <View style={styles.container}>
         <MapView
@@ -71,6 +87,17 @@ class HomeScreen extends React.Component {
               description={'hmm'}
             />
           ) : null }
+
+          {events.map((event, i)=> (
+            <Marker
+              key={i}
+              coordinate={event.latlng}
+              title={event.title}
+              description={event.description}
+            >
+            <Image source={ (event.icon === 'bike') ? bike : deadCat} style={{ height: 35, width: 35 }}/>
+          </Marker>
+          ))}
 
         </MapView>
         <Button

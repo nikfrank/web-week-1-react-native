@@ -1,24 +1,102 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  Button,
+  ToastAndroid,
+  Picker,
+  Dimensions,
+} from 'react-native';
 
-import { getValue, subscribe } from '../features/session';
+import { getValue, publish, subscribe } from '../features/session';
+
+const { height, width } = Dimensions.get('window');
 
 class LinksScreen extends React.Component {
 
   state = {
-    marker: getValue('marker')
+    latlng: getValue('latlng'),
+    title: '',
+    description: '',
+    icon: '',
   }
 
   componentDidMount(){
-    subscribe('marker', marker=> this.setState({ marker }));
+    subscribe('latlng', latlng=> this.setState({ latlng }));
+  }
+
+  setTitle = title => this.setState({ title })
+  setDescription = description => this.setState({ description })
+  setIcon = icon=> this.setState({ icon })
+
+
+  addToMap = ()=> {
+    publish('events', [
+      ...(getValue('events') || []),
+      {
+        latlng: this.state.latlng,
+        title: this.state.title,
+        description: this.state.description,
+        icon: this.state.icon,
+      },
+    ]);
+
+    publish('latlng', undefined);
+    this.setState({ latlng: undefined, title: '', description: '', icon: '' });
+
+    ToastAndroid.show(
+      'Adding event to map...',
+      ToastAndroid.LONG,
+    );
+
+    setTimeout(()=> this.props.navigation.navigate('Home'), 2500);
   }
 
   render() {
     return (
       <ScrollView style={styles.container}>
-        {this.state.marker ? (
-          <Text>{this.state.marker.latitude}N - {this.state.marker.longitude}E</Text>
+        {this.state.latlng ? (
+          <Text>{this.state.latlng.latitude}N - {this.state.latlng.longitude}E</Text>
         ) : null }
+
+        <TextInput
+          style={styles.input}
+          onChangeText={this.setTitle}
+          value={this.state.title}
+          placeholder='Title'
+          placeholderTextColor='#227'
+        />
+        <TextInput
+          style={styles.input}
+          onChangeText={this.setDescription}
+          value={this.state.description}
+          placeholder='Description'
+          placeholderTextColor='#227'
+          multiline={true}
+          numberOfLines={2}
+        />
+
+        <Picker
+          selectedValue={this.state.icon}
+          style={{height: 50, width }}
+          onValueChange={this.setIcon}>
+          <Picker.Item label="Bike" value="bike" />
+          <Picker.Item label="Animal" value="animal" />
+        </Picker>
+
+        <Button
+          onPress={this.addToMap}
+          style={styles.hoverButton}
+          title="Add to Map"
+          color="#841584"
+          accessibilityLabel="Add to Map"
+          disabled={!this.state.latlng ||
+                    !this.state.title ||
+                    !this.state.description ||
+                    !this.state.icon}
+        />
       </ScrollView>
     );
   }
@@ -35,5 +113,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 15,
     backgroundColor: '#fff',
+  },
+  input: {
+    margin: 10,
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+  },
+  hoverButton: {
+    marginTop: 5,
+    height: 80,
   },
 });
